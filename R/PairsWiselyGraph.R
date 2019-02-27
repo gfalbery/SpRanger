@@ -1,10 +1,6 @@
 
 # Greg's range extraction function ####
 
-load("C:/Users/s1552388/Documents/Albersnet/data/MammalRanges.Rdata")
-
-Rasterstack <- MammalRanges
-
 PairsWiselyGraph <- function(Rasterstack, Species = "All"){
 
   library(raster); library(tidyverse); library(Matrix); library(igraph)
