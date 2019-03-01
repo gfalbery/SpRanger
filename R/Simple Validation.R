@@ -2,6 +2,10 @@
 
 Validate <- function(VirusAssocs){
 
+  a = 1
+
+  ValidList <- list()
+
   for(a in a:length(VirusAssocs)){
 
     print(names(VirusAssocs)[a])
@@ -41,17 +45,17 @@ Validate <- function(VirusAssocs){
 
       ValidEst
 
-      GAMValidation[[names(VirusAssocs)[a]]] <- ValidEst
+      ValidList[[names(VirusAssocs)[a]]] <- ValidEst
 
     } else {
 
-      GAMValidation[[names(VirusAssocs)[a]]] <- NA
+      ValidList[[names(VirusAssocs)[a]]] <- NA
 
       print("Hosts Not Found!")
 
     }
   }
 
-  return(GAMValidation)
+  return(ValidList)
 
 }
