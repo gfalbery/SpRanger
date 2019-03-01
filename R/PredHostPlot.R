@@ -11,18 +11,13 @@ PredHostPlot <- function(Virus = NULL, Hosts = NULL, threshold = 10, focal = c(1
 
     if(!Virus%in%names(GAMValid)) stop("Virus not found :( try entering hosts manually?") else print("We have this virus! Wahey.")
 
-    Df <- GAMValid[[Virus]] %>% mutate(Focal = as.numeric(as.character(Focal)))
-    Df$Include <- ifelse(Df$Focal%in%focal, 1, 0)
-    Df <- Df %>% filter(Include==1)
-
+    Df <- GAMValid[[Virus]]
     Df$Rank = nrow(Df) - rank(Df$Count)
-
-    if(all(focal == 1)) threshold <- nrow(Df)
-
     PredHosts <- Df %>% filter(Rank < threshold) #%>% select(Sp) %>% unlist
-    if(length(focal)==2) PredHosts <- Df %>% filter(Rank < threshold|Focal==1) #%>% select(Sp) %>% unlist
 
   }else if(!is.null(Hosts)){
+
+    Hosts <- Hosts %>% str_replace_all(" ", "_")
 
     if(length(Hosts)<2) warning("This is only one host! Predictions might be rubbish.")
 
@@ -38,31 +33,48 @@ PredHostPlot <- function(Virus = NULL, Hosts = NULL, threshold = 10, focal = c(1
 
     Hosts <- intersect(Hosts, rownames(AllSims[[1]]))
 
-    FocalNet <- map(AllSims, Hosts)
+    ValidEst <- lapply(AllSims, function(a){
+
+      pHosts3 <- setdiff(colnames(a), Hosts)
+
+      Estimates <- a[Hosts, pHosts3]
+
+      if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
+
+      Ests <- data.frame(Sp = names(sort(colSums(Estimates))),
+                         Count = sort(colSums(Estimates))/nrow(Estimates),
+                         Iteration = x)
+
+      rownames(Ests) <- Ests$Sp
+
+    })
+
+    GAMValid <- ValidEst %>%
+      bind_rows() %>%
+      group_by(Sp) %>% dplyr::summarise(Count = mean(Count)) %>%
+      slice(order(Count, decreasing = T))
+
+    Df <- GAMValid
+    Df$Rank = nrow(Df) - rank(Df$Count)
+    PredHosts <- Df %>% filter(Rank < threshold) #%>% select(Sp) %>% unlist
 
   }
 
   PredHostPolygons <- FullPolygons %>% filter(Host%in%PredHosts$Sp) %>%
     left_join(PredHosts, by = c("Host" = "Sp")) %>%
-    mutate(Host = factor(Host, levels = Df[order(Df$Rank, Df$Focal, decreasing = TRUE),"Sp"] %>% unlist))
+    mutate(Host = factor(Host, levels = Df[order(Df$Rank, decreasing = TRUE),"Sp"] %>% unlist))
 
   VirusName <- str_replace_all(Virus, "_", " ")
 
-  Focal <- GAMValid[[Virus]] %>% mutate(Focal = as.numeric(as.character(Focal))) %>% filter(Focal==1) %>% select(Sp) %>% unlist
-
-  if(0 %in%focal) Predicted <- PredHosts %>% filter(Focal==0) %>% select(Sp) %>% unlist else{
-    Predicted <- NULL
-  }
-
-  Groups <- ifelse(STFull$tip.label%in%Focal,"Known",ifelse(STFull$tip.label%in%Predicted,"Predicted",""))
+  Groups <- ifelse(STFull$tip.label%in%Hosts,"Known",ifelse(STFull$tip.label%in%PredHosts,"Predicted",""))
 
   groupInfo <- split(STFull$tip.label, Groups)
   chiroptera <- groupOTU(STFull, groupInfo)
 
-  plot2 <- ggtree(chiroptera, aes(color=group, alpha = group)) +
+  plot2 <- ggtree(chiroptera, aes(color = group, alpha = group)) +
     scale_colour_manual(values = c("black", "red", "blue")) +
     scale_alpha_manual(values = c(0.01,0.5,1)) +
-    theme(legend.position = "none")
+    theme(legend.position = "top")
 
   g2 = ggplotGrob(plot2)
 
@@ -79,11 +91,10 @@ PredHostPlot <- function(Virus = NULL, Hosts = NULL, threshold = 10, focal = c(1
 
     ggplot(PredHostPolygons, aes(long, lat, group = paste(Host, group))) +
       geom_polygon(data = WorldMap, inherit.aes = F, aes(long, lat, group = group), fill = "white", colour = "black") +
-      geom_polygon(fill = NA, aes(colour = Host)) + # alpha = max(Rank)-Rank)) +
-      labs(#alpha = "Inverse Rank",
-        title = paste(ifelse(length(focal)==2, "All", ifelse(focal==1, "Known", "Predicted")), VirusName, "Hosts")) +
+      geom_polygon(fill = NA, aes(colour = Host)) +
+      labs(
+        title = paste("Predicted", VirusName, "Hosts")) +
       coord_fixed() +
-      #theme(legend.position = "none") +
       scale_x_continuous(breaks = -10:10*2000000) +
       scale_y_continuous(breaks = -5:5*2000000) +
       geom_polygon(inherit.aes = F, data = rect, aes(long, lat),
@@ -92,13 +103,13 @@ PredHostPlot <- function(Virus = NULL, Hosts = NULL, threshold = 10, focal = c(1
                         xmin = xmin, xmax = xmax,
                         ymin = ymin, ymax = ymax) %>% return #facet_wrap(~Host)
 
-  }else{
+  } else {
 
     ggplot(PredHostPolygons, aes(long, lat, group = paste(Host, group))) +
       geom_polygon(data = WorldMap, inherit.aes = F, aes(long, lat, group = group), fill = "white", colour = "black") +
       geom_polygon(fill = NA, aes(colour = Host)) + # alpha = max(Rank)-Rank)) +
       labs(#alpha = "Inverse Rank",
-        title = paste(ifelse(length(focal)==2, "All", ifelse(focal==1, "Known", "Predicted")), VirusName, "Hosts")) +
+        title = paste("Predicted", VirusName, "Hosts")) +
       coord_fixed() +
       #theme(legend.position = "none") +
       scale_x_continuous(breaks = -10:10*2000000) +
