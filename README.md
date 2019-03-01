@@ -1,3 +1,7 @@
+
+
+        SpRanger/front_logo.png
+
 # SpRanger
 
 ## Very in development, mostly useless at this point
