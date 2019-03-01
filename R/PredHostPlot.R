@@ -1,26 +1,54 @@
 
-PredHostPlot <- function(virus, threshold = 10, focal = c(1,0), facet = FALSE){
+PredHostPlot <- function(Virus = NULL, Hosts = NULL, threshold = 10, focal = c(1,0), facet = FALSE){
 
-  require(ggtree)
+  require(dplyr); require(stringr); library(tidyverse); require(ggtree)
 
-  Df <- GAMValid[[virus]] %>% mutate(Focal = as.numeric(as.character(Focal)))
-  Df$Include <- ifelse(Df$Focal%in%focal, 1, 0)
-  Df <- Df %>% filter(Include==1)
+  if(!is.null(Virus)&!is.null(Hosts)) stop("Only specify one of Virus or Host please :)")
 
-  Df$Rank = nrow(Df) - rank(Df$Count)
+  if(!is.null(Virus)){
 
-  if(all(focal == 1)) threshold <- nrow(Df)
+    Virus <- Virus %>% str_replace_all(" ", "_")
 
-  PredHosts <- Df %>% filter(Rank < threshold) #%>% select(Sp) %>% unlist
-  if(length(focal)==2) PredHosts <- Df %>% filter(Rank < threshold|Focal==1) #%>% select(Sp) %>% unlist
+    if(!Virus%in%names(GAMValid)) stop("Virus not found :( try entering hosts manually?") else print("We have this virus! Wahey.")
+
+    Df <- GAMValid[[Virus]] %>% mutate(Focal = as.numeric(as.character(Focal)))
+    Df$Include <- ifelse(Df$Focal%in%focal, 1, 0)
+    Df <- Df %>% filter(Include==1)
+
+    Df$Rank = nrow(Df) - rank(Df$Count)
+
+    if(all(focal == 1)) threshold <- nrow(Df)
+
+    PredHosts <- Df %>% filter(Rank < threshold) #%>% select(Sp) %>% unlist
+    if(length(focal)==2) PredHosts <- Df %>% filter(Rank < threshold|Focal==1) #%>% select(Sp) %>% unlist
+
+  }else if(!is.null(Hosts)){
+
+    if(length(Hosts)<2) warning("This is only one host! Predictions might be rubbish.")
+
+    if(length(intersect(Hosts, rownames(AllSims[[1]])))==0){
+      stop("None of your hosts are in our dataset! :( are they marine, or are there synonyms?")
+
+    } else if(length(intersect(Hosts, rownames(AllSims[[1]])))<length(Hosts)){
+
+      warning(paste("Some hosts not found:",
+                    paste(setdiff(Hosts, rownames(AllSims[[1]]), collapse = ", ")),
+                    "; tread carefully"))
+    }
+
+    Hosts <- intersect(Hosts, rownames(AllSims[[1]]))
+
+    FocalNet <- map(AllSims, Hosts)
+
+  }
 
   PredHostPolygons <- FullPolygons %>% filter(Host%in%PredHosts$Sp) %>%
     left_join(PredHosts, by = c("Host" = "Sp")) %>%
     mutate(Host = factor(Host, levels = Df[order(Df$Rank, Df$Focal, decreasing = TRUE),"Sp"] %>% unlist))
 
-  VirusName <- str_replace_all(virus, "_", " ")
+  VirusName <- str_replace_all(Virus, "_", " ")
 
-  Focal <- GAMValid[[virus]] %>% mutate(Focal = as.numeric(as.character(Focal))) %>% filter(Focal==1) %>% select(Sp) %>% unlist
+  Focal <- GAMValid[[Virus]] %>% mutate(Focal = as.numeric(as.character(Focal))) %>% filter(Focal==1) %>% select(Sp) %>% unlist
 
   if(0 %in%focal) Predicted <- PredHosts %>% filter(Focal==0) %>% select(Sp) %>% unlist else{
     Predicted <- NULL
