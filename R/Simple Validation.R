@@ -1,0 +1,57 @@
+# Simple Validation #####
+
+Validate <- function(VirusAssocs){
+
+  for(a in a:length(VirusAssocs)){
+
+    print(names(VirusAssocs)[a])
+
+    pHosts <- VirusAssocs[[a]]
+
+    pHosts <- intersect(pHosts, AllMammals)
+
+    pHosts2 <- intersect(pHosts, rownames(AllSums))
+
+    if(length(pHosts2)>1){
+
+      FocalNet <- AllSums[pHosts2,]
+
+      ValidEst <- list()
+
+      for(b in pHosts2){
+
+        pHosts4 <- setdiff(pHosts2, b)
+
+        pHosts3 <- setdiff(colnames(FocalNet), pHosts4)
+
+        Estimates <- FocalNet[pHosts4, pHosts3]/length(AllSims)
+
+        if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
+
+        Ests <- data.frame(Sp = names(sort(colSums(Estimates), decreasing = T)),
+                           Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates)) %>%
+          mutate(Focal = ifelse(Sp==b, 1, 0),
+                 Iteration = b)
+
+        rownames(Ests) <- Ests$Sp
+
+        ValidEst[[b]] <- Ests
+
+      }
+
+      ValidEst
+
+      GAMValidation[[names(VirusAssocs)[a]]] <- ValidEst
+
+    } else {
+
+      GAMValidation[[names(VirusAssocs)[a]]] <- NA
+
+      print("Hosts Not Found!")
+
+    }
+  }
+
+  return(GAMValidation)
+
+}
