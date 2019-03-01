@@ -1,6 +1,6 @@
 
 
-        SpRanger/front_logo.png
+![banner](https://github.com/gfalbery/SpRanger/blob/master/front_logo.png)
 
 # SpRanger
 
