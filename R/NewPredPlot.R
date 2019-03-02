@@ -1,12 +1,10 @@
 
 
-# Model Prediction ####
-
-PredHostPlot <- function(Virus = NULL,
-                         Hosts = NULL,
-                         Threshold = 10,
-                         Focal = c(1,0),
-                         Facet = FALSE){
+PredPlot <- function(Virus = NULL,
+                     Hosts = NULL,
+                     Threshold = 10,
+                     Focal = c(1,0),
+                     Facet = FALSE){
 
   require(dplyr); require(stringr); library(tidyverse); require(ggtree)
 
@@ -40,7 +38,7 @@ PredHostPlot <- function(Virus = NULL,
                     "; tread carefully"))
     }
 
-    if(length(pHosts2)>1){
+    if(length(pHosts2)>0){
 
       FocalNet <- AllSums[pHosts2,]
 
@@ -67,19 +65,11 @@ PredHostPlot <- function(Virus = NULL,
 
       }
 
-      GAMValidation[[names(VirusAssocs)[a]]] <- ValidEst
-
-    } else {
-
-      GAMValidation[[names(VirusAssocs)[a]]] <- NA
-
-      print("Hosts Not Found!")
-
-    }
+    } else print("Hosts Not Found!")
 
     GAMValid <- ValidEst %>%
       bind_rows() %>%
-      group_by(Sp) %>% dplyr::summarise(Count = mean(Count)) %>%
+      group_by(Sp, Focal) %>% dplyr::summarise(Count = mean(Count)) %>%
       slice(order(Count, decreasing = T))
 
     Df <- GAMValid
@@ -87,7 +77,6 @@ PredHostPlot <- function(Virus = NULL,
     PredHosts <- Df %>% filter(Rank < Threshold) #%>% select(Sp) %>% unlist
 
   }
-
 
   PredHostPolygons <- FullPolygons %>% filter(Host%in%PredHosts$Sp) %>%
     left_join(PredHosts, by = c("Host" = "Sp")) %>%

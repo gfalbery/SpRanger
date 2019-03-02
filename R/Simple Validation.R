@@ -43,8 +43,6 @@ Validate <- function(VirusAssocs){
 
       }
 
-      ValidEst
-
       ValidList[[names(VirusAssocs)[a]]] <- ValidEst
 
     } else {
