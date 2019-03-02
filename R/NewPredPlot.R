@@ -29,6 +29,7 @@ PredPlot <- function(Virus = NULL,
     if(length(Hosts)<2) warning("This is only one host! Predictions might be rubbish.")
 
     if(length(intersect(Hosts, rownames(AllSims[[1]])))==0){
+
       stop("None of your hosts are in our dataset! :( are they marine, or are there synonyms?")
 
     } else if(length(intersect(Hosts, rownames(AllSims[[1]])))<length(Hosts)){
