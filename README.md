@@ -1,3 +1,7 @@
+
+
+![banner](https://github.com/gfalbery/SpRanger/blob/master/front_logo.png)
+
 # SpRanger
 
 ## Very in development, mostly useless at this point
