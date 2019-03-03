@@ -131,7 +131,7 @@ PredPlot <- function(Virus = NULL,
 
   if(Facet == FALSE){
 
-    ggplot(PredHostPolygons, aes(long, lat, group = paste(Host, group))) +
+    MapPlot <- ggplot(PredHostPolygons, aes(long, lat, group = paste(Host, group))) +
       geom_polygon(data = WorldMap, inherit.aes = F, aes(long, lat, group = group), fill = "white", colour = "black") +
       geom_polygon(fill = NA, aes(colour = Host)) +
       labs(
@@ -147,7 +147,7 @@ PredPlot <- function(Virus = NULL,
 
   } else {
 
-    ggplot(PredHostPolygons, aes(long, lat, group = paste(Host, group))) +
+    MapPlot <- ggplot(PredHostPolygons, aes(long, lat, group = paste(Host, group))) +
       geom_polygon(data = WorldMap, inherit.aes = F, aes(long, lat, group = group), fill = "white", colour = "black") +
       geom_polygon(fill = NA, aes(colour = Host)) + # alpha = max(Rank)-Rank)) +
       labs(#alpha = "Inverse Rank",
@@ -163,6 +163,12 @@ PredPlot <- function(Virus = NULL,
                         ymin = ymin, ymax = ymax) +
       facet_wrap(~Focal, ncol = 1,
                  labeller = labeller(Focal = c("0" = "Predicted", "1" ="Known"))) %>% return #Facet_wrap(~Host)
+
+  }
+
+  if(Validate) return(list(MapPlot, ggplot(GAMValid, aes(Focal, MeanRank, colour = Focal)) + ggforce::geom_sina())) else{
+
+    return(MapPlot)
 
   }
 
