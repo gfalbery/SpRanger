@@ -69,6 +69,4 @@ PairsWisely <- function(Rasterstack, Species = "All"){
 
   return(RangeAdj)
 
-  detach(package:raster)
-
 }
