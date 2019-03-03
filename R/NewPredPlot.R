@@ -3,6 +3,7 @@
 PredPlot <- function(Virus = NULL,
                      Hosts = NULL,
                      Threshold = 10,
+                     Validate = TRUE,
                      Focal = c(1,0),
                      Facet = FALSE){
 
@@ -18,7 +19,7 @@ PredPlot <- function(Virus = NULL,
 
     Df <- GAMValid[[Virus]]
 
-    Df$Rank = nrow(Df) - rank(Df$Count)
+    Df$Rank <- nrow(Df) - rank(Df$Count)
 
     PredHosts <- Df %>% filter(Rank < Threshold) #%>% select(Sp) %>% unlist
 
@@ -45,36 +46,58 @@ PredPlot <- function(Virus = NULL,
 
       ValidEst <- list()
 
-      for(b in pHosts2){
+      if(Validate){
 
-        pHosts4 <- setdiff(pHosts2, b)
+        for(b in pHosts2){
 
-        pHosts3 <- setdiff(colnames(FocalNet), pHosts4)
+          pHosts4 <- setdiff(pHosts2, b)
 
-        Estimates <- FocalNet[pHosts4, pHosts3]/length(AllSims)
+          pHosts3 <- setdiff(colnames(FocalNet), pHosts4)
+
+          Estimates <- FocalNet[pHosts4, pHosts3]/length(AllSims)
+
+          if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
+
+          Ests <- data.frame(Sp = names(sort(colSums(Estimates), decreasing = T)),
+                             Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates)) %>%
+            mutate(Focal = ifelse(Sp==b, 1, 0),
+                   Iteration = b)
+
+          rownames(Ests) <- Ests$Sp
+
+          ValidEst[[b]] <- Ests
+
+        }
+
+        GAMValid <- ValidEst %>%
+          bind_rows() %>%
+          group_by(Sp, Focal) %>% dplyr::summarise(Count = mean(Count)) %>%
+          slice(order(Count, decreasing = T))
+
+      } else {
+
+        pHosts3 <- setdiff(colnames(FocalNet), pHosts2)
+
+        Estimates <- FocalNet[pHosts2, pHosts3]/length(AllSims)
 
         if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
 
         Ests <- data.frame(Sp = names(sort(colSums(Estimates), decreasing = T)),
-                           Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates)) %>%
-          mutate(Focal = ifelse(Sp==b, 1, 0),
-                 Iteration = b)
+                           Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates))
 
         rownames(Ests) <- Ests$Sp
 
-        ValidEst[[b]] <- Ests
+        GAMValid <- Ests %>%
+          slice(order(Count, decreasing = T))
 
       }
 
     } else print("Hosts Not Found!")
 
-    GAMValid <- ValidEst %>%
-      bind_rows() %>%
-      group_by(Sp, Focal) %>% dplyr::summarise(Count = mean(Count)) %>%
-      slice(order(Count, decreasing = T))
-
     Df <- GAMValid
-    Df$Rank = nrow(Df) - rank(Df$Count)
+    Df$Rank <- nrow(Df) - rank(Df$Count)
+    Df <- Df %>% mutate(Include = ifelse(Rank<Threshold,1,0))
+    if(1 %in% Focal) Df[Df$Focal==1,"Include"] <- 1
     PredHosts <- Df %>% filter(Rank < Threshold) #%>% select(Sp) %>% unlist
 
   }
@@ -95,16 +118,16 @@ PredPlot <- function(Virus = NULL,
     scale_alpha_manual(values = c(0.01,0.5,1)) +
     theme(legend.position = "top")
 
-  g2 = ggplotGrob(plot2)
+  g2 <- ggplotGrob(plot2)
 
-  xmin = -1.9*(10^7)
-  xmax = -1.2*(10^7)
-  ymin = -9*(10^6)
-  ymax = 9*(10^6)
+  xmin <- -1.9*(10^7)
+  xmax <- -1.2*(10^7)
+  ymin <- -9*(10^6)
+  ymax <- 9*(10^6)
 
   rectborder <- 60000
-  rect = data.frame(long = c(xmin-rectborder, xmin-rectborder, xmax+rectborder, xmax+rectborder),
-                    lat = c(ymin-rectborder, ymax+rectborder, ymax+rectborder, ymin-rectborder))
+  rect <- data.frame(long = c(xmin-rectborder, xmin-rectborder, xmax+rectborder, xmax+rectborder),
+                     lat = c(ymin-rectborder, ymax+rectborder, ymax+rectborder, ymin-rectborder))
 
   if(Facet == FALSE){
 
@@ -140,6 +163,7 @@ PredPlot <- function(Virus = NULL,
                         ymin = ymin, ymax = ymax) +
       facet_wrap(~Focal, ncol = 1,
                  labeller = labeller(Focal = c("0" = "Predicted", "1" ="Known"))) %>% return #Facet_wrap(~Host)
+
   }
 
 }
