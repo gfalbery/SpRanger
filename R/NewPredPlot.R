@@ -6,7 +6,7 @@ PredPlot <- function(Virus = NULL,
                      Validate = TRUE,
                      Focal = c(1,0),
                      Facet = FALSE,
-                     WorldMap = TRUE,
+                     Map = TRUE,
                      Tree = TRUE,
                      Legend = "right"){
 
@@ -130,7 +130,7 @@ PredPlot <- function(Virus = NULL,
                  fill = "grey", colour = "grey") +
     theme(plot.title = element_text(hjust=0.5))
 
-  if(WorldMap){
+  if(Map){
 
     MapPlot <- ggplot(PredHostPolygons, aes(long, lat, group = paste(Host, group))) +
       geom_polygon(data = WorldMap, inherit.aes = F, aes(long, lat, group = group), fill = "white", colour = "black") +
