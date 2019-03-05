@@ -1,7 +1,7 @@
 
 
 PredPlot <- function(Virus = NULL,
-                     Hosts = NULL,
+                     HostList = NULL,
                      Threshold = 10,
                      Validate = TRUE,
                      Focal = c(1,0),
@@ -12,7 +12,7 @@ PredPlot <- function(Virus = NULL,
 
   require(dplyr); require(stringr); library(tidyverse); require(ggtree)
 
-  if(!is.null(Virus)&!is.null(Hosts)) stop("Only specify one of Virus or Host please :)")
+  if(!is.null(Virus)&!is.null(HostList)) stop("Only specify one of Virus or Host please :)")
 
   if(!is.null(Virus)){
 
@@ -26,24 +26,24 @@ PredPlot <- function(Virus = NULL,
 
     PredHosts <- Df %>% filter(Rank < Threshold) #%>% select(Sp) %>% unlist
 
-  } else if(!is.null(Hosts)){
+  } else if(!is.null(HostList)){
 
-    Hosts <- Hosts %>% str_replace_all(" ", "_")
+    HostList <- HostList %>% str_replace_all(" ", "_")
 
-    if(length(Hosts)<2) print("This is only one host! Predictions might be rubbish.", immediate = T)
+    if(length(HostList)<2) print("This is only one host! Predictions might be rubbish.", immediate = T)
 
-    if(length(intersect(Hosts, rownames(AllSums)))==0){
+    if(length(intersect(HostList, rownames(AllSums)))==0){
 
       stop("None of your hosts are in our dataset! :( are they marine, or are there synonyms?")
 
-    } else if(length(intersect(Hosts, rownames(AllSums)))<length(Hosts)){
+    } else if(length(intersect(HostList, rownames(AllSums)))<length(HostList)){
 
       print(paste("Warning: Some hosts not found:",
-                  paste(setdiff(Hosts, rownames(AllSums)), collapse = ", "),
+                  paste(setdiff(HostList, rownames(AllSums)), collapse = ", "),
                   "; tread carefully"))
     }
 
-    pHosts2 <- intersect(Hosts, rownames(AllSums))
+    pHosts2 <- intersect(HostList, rownames(AllSums))
 
     if(length(pHosts2)>0){
 
@@ -91,7 +91,7 @@ PredPlot <- function(Virus = NULL,
 
         Ests <- data.frame(Sp = names(sort(colSums(Estimates), decreasing = T)),
                            Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates)) %>%
-          mutate(Focal = ifelse(Sp%in%Hosts,1,0))
+          mutate(Focal = ifelse(Sp%in%HostList,1,0))
 
         rownames(Ests) <- Ests$Sp
 
@@ -170,7 +170,7 @@ PredPlot <- function(Virus = NULL,
     MapPlot <- MapPlot +
       annotation_custom(grob = g2,
                         xmin = xmin, xmax = xmax,
-                        ymin = ymin, ymax = ymax) %>% return #Facet_wrap(~Host)
+                        ymin = ymin, ymax = ymax)
   }
 
   if(Facet){
