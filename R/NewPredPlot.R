@@ -176,7 +176,7 @@ PredPlot <- function(Virus = NULL,
   if(Facet){
     MapPlot <- MapPlot +
       facet_wrap(~Focal, ncol = 1,
-                 labeller = labeller(Focal = c("0" = "Predicted", "1" ="Known"))) %>% return #Facet_wrap(~Host)
+                 labeller = labeller(Focal = c("0" = "Predicted", "1" ="Known")))
 
   }
 
