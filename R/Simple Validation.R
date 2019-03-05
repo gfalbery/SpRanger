@@ -12,8 +12,6 @@ Validate <- function(VirusAssocs){
 
     pHosts <- VirusAssocs[[a]]
 
-    pHosts <- intersect(pHosts, AllMammals)
-
     pHosts2 <- intersect(pHosts, rownames(AllSums))
 
     if(length(pHosts2)>1){
