@@ -8,7 +8,7 @@ PredPlot <- function(Virus = NULL,
                      Facet = FALSE,
                      Map = TRUE,
                      Tree = TRUE,
-                     Summarise = F,
+                     Summarise = TRUE,
                      Legend = "right"){
 
   require(dplyr); require(stringr); library(tidyverse); require(ggtree); require(cowplot)
@@ -83,9 +83,6 @@ PredPlot <- function(Virus = NULL,
 
       } else {
 
-        #pHosts3 <- setdiff(colnames(FocalNet), pHosts2)
-        #Estimates <- FocalNet[pHosts2, pHosts3]/length(AllSims)
-
         Estimates <- FocalNet[pHosts2,]/length(AllSims)
 
         if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
@@ -110,6 +107,8 @@ PredPlot <- function(Virus = NULL,
     Df <- Df %>% mutate(Include = ifelse(Rank<Threshold&Focal==0,1,0))
     if(1 %in% Focal) Df[Df$Focal==1,"Include"] <- 1
     PredHosts <- Df %>% filter(Include == 1) #%>% select(Sp) %>% unlist
+
+    Df <- Df %>% mutate(Focal = factor(c("Predicted","Observed")[as.numeric(Focal)+1]))
 
   }
 
@@ -175,7 +174,9 @@ PredPlot <- function(Virus = NULL,
   }
 
   if(Facet){
+
     MapPlot <- MapPlot +
+
       facet_wrap(~Focal, ncol = 1,
                  labeller = labeller(Focal = c("0" = "Predicted", "1" ="Known")))
 
@@ -187,9 +188,12 @@ PredPlot <- function(Virus = NULL,
 
   if(Validate){
 
-    ValidPlot <- ggplot(Df, aes(Focal, Count, colour = Focal)) +
+    ValidPlot <- ggplot(Df, aes(Focal, Count, colour = Focal, alpha = Focal)) +
       ggforce::geom_sina() +
-      geom_text(data = Df[1,], inherit.aes = F, aes(x = 1.5, y = max(Df$Count)*1.1, label = paste("Mean Focal Rank =", mean(Df[Df$Focal==1,"Rank"])))) +
+      scale_alpha_manual(values = c(1, 0.1)) +
+      geom_text(data = Df[1,], inherit.aes = F, aes(x = 1.5, y = max(Df$Count)*1.1,
+                                                    label = paste("Mean Focal Rank =",
+                                                                  mean(Df[Df$Focal=="Observed","Rank"])))) +
       ggtitle("Model Success Rate")
 
     ReturnList[["ValidPlot"]] <- ValidPlot
@@ -197,12 +201,15 @@ PredPlot <- function(Virus = NULL,
 
   if(Summarise){
 
-    SummariseDF <- Panth1 %>% filter(Sp %in% PredHosts)
+    SummariseDF <- Panth1 %>% select(Sp, hOrder, MSW05_Family) %>%
+      dplyr::rename(Order = hOrder, Family = MSW05_Family) %>%
+      right_join(PredHosts, by = "Sp") %>%
+      rename(Species = Sp)
 
+    ReturnList[["Summarise"]] <- SummariseDF
 
   }
 
   return(ReturnList)
 
 }
-
