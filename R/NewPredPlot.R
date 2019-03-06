@@ -8,9 +8,10 @@ PredPlot <- function(Virus = NULL,
                      Facet = FALSE,
                      Map = TRUE,
                      Tree = TRUE,
+                     Summarise = F,
                      Legend = "right"){
 
-  require(dplyr); require(stringr); library(tidyverse); require(ggtree)
+  require(dplyr); require(stringr); library(tidyverse); require(ggtree); require(cowplot)
 
   if(!is.null(Virus)&!is.null(HostList)) stop("Only specify one of Virus or Host please :)")
 
@@ -147,7 +148,7 @@ PredPlot <- function(Virus = NULL,
 
   if(Tree){
 
-    Groups <- ifelse(STFull$tip.label%in%Hosts,"Known",ifelse(STFull$tip.label%in%PredHosts$Sp,"Predicted",""))
+    Groups <- ifelse(STFull$tip.label%in%HostList,"Known",ifelse(STFull$tip.label%in%PredHosts$Sp,"Predicted",""))
 
     groupInfo <- split(STFull$tip.label, Groups)
     chiroptera <- groupOTU(STFull, groupInfo)
@@ -180,6 +181,10 @@ PredPlot <- function(Virus = NULL,
 
   }
 
+  ReturnList <- list()
+
+  ReturnList[["MapPlot"]] <- MapPlot
+
   if(Validate){
 
     ValidPlot <- ggplot(Df, aes(Focal, Count, colour = Focal)) +
@@ -187,12 +192,17 @@ PredPlot <- function(Virus = NULL,
       geom_text(data = Df[1,], inherit.aes = F, aes(x = 1.5, y = max(Df$Count)*1.1, label = paste("Mean Focal Rank =", mean(Df[Df$Focal==1,"Rank"])))) +
       ggtitle("Model Success Rate")
 
-    return(list(MapPlot,
-                ValidPlot))
-  }else{
+    ReturnList[["ValidPlot"]] <- ValidPlot
+  }
 
-    return(MapPlot)
+  if(Summarise){
+
+    SummariseDF <- Panth1 %>% filter(Sp %in% PredHosts)
+
 
   }
 
+  return(ReturnList)
+
 }
+
