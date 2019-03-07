@@ -125,9 +125,7 @@ PredPlot <- function(Virus = NULL,
     coord_fixed() +
     theme(legend.position = Legend) +
     scale_x_continuous(breaks = -10:10*5000000) +
-    scale_y_continuous(breaks = -5:5*5000000) +
-    geom_polygon(inherit.aes = F, data = rect, aes(long, lat),
-                 fill = "grey", colour = "grey") +
+    scale_y_continuous(breaks = -5:5*5000000)+
     theme(plot.title = element_text(hjust=0.5))
 
   if(Map){
@@ -140,9 +138,7 @@ PredPlot <- function(Virus = NULL,
       coord_fixed() +
       theme(legend.position = Legend) +
       scale_x_continuous(breaks = -10:10*5000000) +
-      scale_y_continuous(breaks = -5:5*5000000) +
-      geom_polygon(inherit.aes = F, data = rect, aes(long, lat),
-                   fill = "grey", colour = "grey")
+      scale_y_continuous(breaks = -5:5*5000000)
   }
 
   if(Tree){
@@ -168,6 +164,8 @@ PredPlot <- function(Virus = NULL,
                        lat = c(ymin-rectborder, ymax+rectborder, ymax+rectborder, ymin-rectborder))
 
     MapPlot <- MapPlot +
+      geom_polygon(inherit.aes = F, data = rect, aes(long, lat),
+                   fill = "grey", colour = "grey") +
       annotation_custom(grob = g2,
                         xmin = xmin, xmax = xmax,
                         ymin = ymin, ymax = ymax)
