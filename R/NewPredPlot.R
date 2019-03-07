@@ -108,9 +108,9 @@ PredPlot <- function(Virus = NULL,
     if(1 %in% Focal) Df[Df$Focal==1,"Include"] <- 1
     PredHosts <- Df %>% filter(Include == 1) #%>% select(Sp) %>% unlist
 
-    Df <- Df %>% mutate(Focal = factor(c("Predicted","Observed")[as.numeric(Focal)+1]))
-
   }
+
+  Df <- Df %>% mutate(Focal = factor(c("Predicted","Observed")[(3-as.numeric(Focal))]))
 
   PredHostPolygons <- FullPolygons %>% filter(Host%in%PredHosts$Sp) %>%
     left_join(PredHosts, by = c("Host" = "Sp")) %>%
@@ -190,7 +190,7 @@ PredPlot <- function(Virus = NULL,
 
     ValidPlot <- ggplot(Df, aes(Focal, Count, colour = Focal, alpha = Focal)) +
       ggforce::geom_sina() +
-      scale_alpha_manual(values = c(1, 0.1)) +
+      scale_alpha_manual(values = c(0.3, 1)) +
       geom_text(data = Df[1,], inherit.aes = F, aes(x = 1.5, y = max(Df$Count)*1.1,
                                                     label = paste("Mean Focal Rank =",
                                                                   mean(Df[Df$Focal=="Observed","Rank"])))) +
