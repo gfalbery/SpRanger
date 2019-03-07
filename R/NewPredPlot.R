@@ -75,7 +75,7 @@ PredPlot <- function(Virus = NULL,
 
         }
 
-        GAMValid <- ValidEst %>%
+        ValidDF <- ValidEst %>%
           bind_rows() %>%
           group_by(Sp, Focal) %>% dplyr::summarise(Count = mean(Count)) %>%
           slice(order(Count, decreasing = T)) %>%
@@ -93,7 +93,7 @@ PredPlot <- function(Virus = NULL,
 
         rownames(Ests) <- Ests$Sp
 
-        GAMValid <- Ests %>%
+        ValidDF <- Ests %>%
           slice(order(Focal)) %>%
           slice(order(Count, decreasing = T)) %>%
           mutate(Focal = as.factor(Focal))
@@ -102,9 +102,9 @@ PredPlot <- function(Virus = NULL,
 
     } else print("Hosts Not Found!")
 
-    Df <- GAMValid %>% as.data.frame()
+    Df <- ValidDF %>% as.data.frame()
     Df$Rank <- nrow(Df) - rank(Df$Count)
-    Df <- Df %>% mutate(Include = ifelse(Rank<Threshold&Focal==0,1,0))
+    if(0 %in% Focal) Df <- Df %>% mutate(Include = ifelse(Rank<Threshold&Focal==0,1,0))
     if(1 %in% Focal) Df[Df$Focal==1,"Include"] <- 1
     PredHosts <- Df %>% filter(Include == 1) #%>% select(Sp) %>% unlist
 
@@ -202,7 +202,7 @@ PredPlot <- function(Virus = NULL,
     SummariseDF <- Panth1 %>% select(Sp, hOrder, MSW05_Family) %>%
       dplyr::rename(Order = hOrder, Family = MSW05_Family) %>%
       right_join(PredHosts, by = "Sp") %>%
-      rename(Species = Sp)
+      dplyr::rename(Species = Sp)
 
     ReturnList[["Summarise"]] <- SummariseDF
 
