@@ -1,6 +1,6 @@
 # Simple Validation #####
 
-Validate <- function(VirusAssocs){
+Validate <- function(VirusAssocs, Network){
 
   a = 1
 
@@ -12,7 +12,7 @@ Validate <- function(VirusAssocs){
 
     pHosts <- VirusAssocs[[a]]
 
-    pHosts2 <- intersect(pHosts, rownames(AllSums))
+    pHosts2 <- intersect(pHosts, rownames(Network))
 
     if(length(pHosts2)>1){
 
@@ -26,7 +26,7 @@ Validate <- function(VirusAssocs){
 
         pHosts3 <- setdiff(colnames(FocalNet), pHosts4)
 
-        Estimates <- FocalNet[pHosts4, pHosts3]/length(AllSims)
+        Estimates <- FocalNet[pHosts4, pHosts3]
 
         if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
 
