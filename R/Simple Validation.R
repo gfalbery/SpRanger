@@ -16,7 +16,7 @@ Validate <- function(VirusAssocs, Network){
 
     if(length(pHosts2)>1){
 
-      FocalNet <- AllSums[pHosts2,]
+      FocalNet <- Network[pHosts2,]
 
       ValidEst <- list()
 
