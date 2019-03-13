@@ -4,7 +4,7 @@ PredPlot <- function(Virus = NULL,
                      HostList = NULL,
                      Threshold = 10,
                      Validate = TRUE,
-                     FocalDisplay = c(1,0),
+                     FocalDisplay = c("Observed","Predicted"),
                      Facet = FALSE,
                      Map = TRUE,
                      Tree = TRUE,
@@ -48,87 +48,55 @@ PredPlot <- function(Virus = NULL,
 
     if(length(pHosts2)>0){
 
-      FocalNet <- AllSums[pHosts2,]
-
-      ValidEst <- list()
-
       if(Validate){
 
-        for(b in pHosts2){
+        ValidDF <- NetworkValidate(HostList = HostList, Network = AllSums)
 
-          pHosts4 <- setdiff(pHosts2, b)
+        FullDF <- as.data.frame(ValidDF)
 
-          pHosts3 <- setdiff(colnames(FocalNet), pHosts4)
+        SubValidDF <- dplyr::filter(ValidDF, Focal == "Predicted")
+        SubValidDF <- SubValidDF %>% mutate(SubRank = nrow(SubValidDF) - rank(Count) + 1)
 
-          Estimates <- FocalNet[pHosts4, pHosts3]
-
-          if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
-
-          Ests <- data.frame(Sp = names(sort(colSums(Estimates), decreasing = T)),
-                             Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates)) %>%
-            mutate(Focal = ifelse(Sp==b, 1, 0),
-                   Iteration = b)
-
-          rownames(Ests) <- Ests$Sp
-
-          ValidEst[[b]] <- Ests
-
-        }
-
-        ValidDF <- ValidEst %>%
-          bind_rows() %>%
-          group_by(Sp, Focal) %>% dplyr::summarise(Count = mean(Count)) %>%
-          slice(order(Count, decreasing = T)) %>%
-          mutate(Focal = as.factor(Focal))
+        ValidDF <- left_join(ValidDF, SubValidDF)
+        ValidDF <- ValidDF %>% mutate(Include = ifelse(Focal == "Observed"|SubRank<Threshold, 1, 0)) %>%
+          filter(Include == 1)
 
       } else {
 
-        Estimates <- FocalNet[pHosts2,]
+        ValidDF <- NetworkPredict(HostList = HostList, Network = AllSums)
 
-        if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
+        FullDF <- as.data.frame(ValidDF)
 
-        Ests <- data.frame(Sp = names(sort(colSums(Estimates), decreasing = T)),
-                           Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates)) %>%
-          mutate(Focal = ifelse(Sp%in%HostList,1,0))
-
-        rownames(Ests) <- Ests$Sp
-
-        ValidDF <- Ests %>%
-          slice(order(Focal)) %>%
-          slice(order(Count, decreasing = T)) %>%
-          mutate(Focal = as.factor(Focal))
+        ValidDF <- ValidDF %>% filter(Rank<=Threshold)
 
       }
 
-    } else print("Hosts Not Found!")
+    } else stop("Hosts Not Found!")
 
-    Df <- ValidDF %>% as.data.frame()
-    Df$Rank <- nrow(Df) - rank(Df$Count)
-    if(1 %in% FocalDisplay) Df[Df$Focal==1,"Include"] <- 1
-    if(0 %in% FocalDisplay) Df <- Df %>% mutate(Include = ifelse(Rank<Threshold&Focal==0,1,0))
-    PredHosts <- Df %>% filter(Include == 1) #%>% select(Sp) %>% unlist
+    SpList <- list()
+
+    if("Observed"%in%FocalDisplay) SpList$Observed <- HostList
+    if("Predicted"%in%FocalDisplay) SpList$Predicted <- ValidDF$Sp
 
   }
 
-  Df <- Df %>% mutate(Focal = factor(c("Predicted","Observed")[(as.numeric(Focal)+1)]))
-
   VirusName <- str_replace_all(Virus, "_", " ")
 
-  if(Facet){
+  if(Facet&length(FocalDisplay)==2){
 
     Plots <- list()
 
     for(x in FocalDisplay){
 
-      Title = (c("Observed","Predicted")[FocalDisplay[x+1]+1])
+      Title = x
 
-      PlotSp <- (Df %>%
-                   filter(Focal == Title))$Sp
+      PlotSp <- SpList[[x]]
 
       Plots[[x]] <-
 
-        RangePlot(Mammals = PlotSp, Map = Map, Tree = Tree)# +
-      #ggtitle(as.character(Title))
+        RangePlot(Mammals = PlotSp, Map = Map, Tree = Tree) +
+        ggtitle(as.character(paste(Title, "Hosts"))) +
+        theme(legend.position = Legend)
 
     }
 
@@ -136,9 +104,10 @@ PredPlot <- function(Virus = NULL,
 
   } else {
 
-    MapPlot <- RangePlot(Mammals = Df$Sp,
+    MapPlot <- RangePlot(Mammals = unlist(SpList),
                          Map = Map,
-                         Tree = Tree)
+                         Tree = Tree) +
+      theme(legend.position = Legend)
 
   }
 
@@ -148,7 +117,9 @@ PredPlot <- function(Virus = NULL,
 
   if(Validate){
 
-    ValidPlot <- ggplot(Df, aes(Focal, Count, colour = Focal, alpha = Focal)) +
+    FullDF$Focal <- FullDF$Focal %>% factor(levels = c("Predicted", "Observed"))
+
+    ValidPlot <- ggplot(FullDF, aes(Focal, Count, colour = Focal, alpha = Focal)) +
       ggforce::geom_sina() +
       scale_alpha_manual(values = c(0.3, 1)) +
       geom_text(data = Df[1,], inherit.aes = F, aes(x = 1.5, y = max(Df$Count)*1.1,
@@ -161,9 +132,11 @@ PredPlot <- function(Virus = NULL,
 
   if(Summarise){
 
-    SummariseDF <- Panth1 %>% select(Sp, hOrder, MSW05_Family) %>%
-      dplyr::rename(Order = hOrder, Family = MSW05_Family) %>%
-      right_join(PredHosts, by = "Sp") %>%
+    SummariseDF <- Panth1 %>%
+      dplyr::select(Sp, hOrder, MSW05_Family) %>%
+      dplyr::rename(Order = hOrder,
+                    Family = MSW05_Family) %>%
+      filter(Sp%in%PredHosts) %>%
       dplyr::rename(Species = Sp)
 
     ReturnList[["Summarise"]] <- SummariseDF
