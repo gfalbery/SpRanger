@@ -60,7 +60,7 @@ PredPlot <- function(Virus = NULL,
 
           pHosts3 <- setdiff(colnames(FocalNet), pHosts4)
 
-          Estimates <- FocalNet[pHosts4, pHosts3]/length(AllSims)
+          Estimates <- FocalNet[pHosts4, pHosts3]
 
           if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
 
@@ -83,7 +83,7 @@ PredPlot <- function(Virus = NULL,
 
       } else {
 
-        Estimates <- FocalNet[pHosts2,]/length(AllSims)
+        Estimates <- FocalNet[pHosts2,]
 
         if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
 
@@ -110,7 +110,7 @@ PredPlot <- function(Virus = NULL,
 
   }
 
-  Df <- Df %>% mutate(Focal = factor(c("Predicted","Observed")[(3-as.numeric(Focal))]))
+  Df <- Df %>% mutate(Focal = factor(c("Predicted","Observed")[(as.numeric(Focal)+1)]))
 
   VirusName <- str_replace_all(Virus, "_", " ")
 
@@ -120,9 +120,15 @@ PredPlot <- function(Virus = NULL,
 
     for(x in FocalDisplay){
 
-      Plots[[x]] <- Df %>% filter(Focal = c("Observed","Predicted")[FocalDisplay[x+1]]) %>%
-        select(Sp) %>% RangePlot(Map = Map, Tree = Tree) +
-        ggtitle(c("Observed","Predicted")[FocalDisplay[x+1]])
+      Title = (c("Observed","Predicted")[FocalDisplay[x+1]+1])
+
+      PlotSp <- (Df %>%
+                   filter(Focal == Title))$Sp
+
+      Plots[[x]] <-
+
+        RangePlot(Mammals = PlotSp, Map = Map, Tree = Tree)# +
+      #ggtitle(as.character(Title))
 
     }
 
@@ -130,8 +136,9 @@ PredPlot <- function(Virus = NULL,
 
   } else {
 
-    MapPlot <- Df %>% select(Sp) %>% RangePlot(Map = Map,
-                                               Tree = Tree)
+    MapPlot <- RangePlot(Mammals = Df$Sp,
+                         Map = Map,
+                         Tree = Tree)
 
   }
 

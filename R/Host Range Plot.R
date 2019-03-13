@@ -15,7 +15,9 @@ RangePlot <- function (Mammals = NULL,
 
     print(paste0("Warning: some mammals not in our data: ",
                  paste(setdiff(Mammals, FullPolygons$Host), collapse = ", ")))
-  } if(all(!Mammals %in% FullPolygons$Host)) stop("No mammals in our data!")
+  }
+
+  if(all(!Mammals %in% FullPolygons$Host)) stop("No mammals in our data!")
 
   RangePolygons <- FullPolygons %>% filter(Host %in% Mammals)
   VirusName <- str_replace_all(Virus, "_", " ")
