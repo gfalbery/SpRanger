@@ -122,9 +122,9 @@ PredPlot <- function(Virus = NULL,
     ValidPlot <- ggplot(FullDF, aes(Focal, Count, colour = Focal, alpha = Focal)) +
       ggforce::geom_sina() +
       scale_alpha_manual(values = c(0.3, 1)) +
-      geom_text(data = Df[1,], inherit.aes = F, aes(x = 1.5, y = max(Df$Count)*1.1,
-                                                    label = paste("Mean Focal Rank =",
-                                                                  mean(Df[Df$Focal=="Observed","Rank"])))) +
+      geom_text(data = FullDF[1,], inherit.aes = F, aes(x = 1.5, y = max(FullDF$Count)*1.1,
+                                                        label = paste("Mean Focal Rank =",
+                                                                      mean(FullDF[FullDF$Focal=="Observed","Rank"])))) +
       ggtitle("Model Success Rate")
 
     ReturnList[["ValidPlot"]] <- ValidPlot
@@ -136,7 +136,7 @@ PredPlot <- function(Virus = NULL,
       dplyr::select(Sp, hOrder, MSW05_Family) %>%
       dplyr::rename(Order = hOrder,
                     Family = MSW05_Family) %>%
-      filter(Sp%in%PredHosts) %>%
+      filter(Sp%in%unlist(SpList)) %>%
       dplyr::rename(Species = Sp)
 
     ReturnList[["Summarise"]] <- SummariseDF
