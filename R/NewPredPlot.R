@@ -76,7 +76,7 @@ PredPlot <- function(Virus = NULL,
     SpList <- list()
 
     if("Observed"%in%FocalDisplay) SpList$Observed <- HostList
-    if("Predicted"%in%FocalDisplay) SpList$Predicted <- ValidDF$Sp
+    if("Predicted"%in%FocalDisplay) SpList$Predicted <- setdiff(ValidDF$Sp, HostList)
 
   }
 
