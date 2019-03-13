@@ -10,8 +10,12 @@ RangePlot <- function (Mammals = NULL,
   library(tidyverse)
   require(ggtree)
   require(cowplot)
-  if (any(!Mammals %in% FullPolygons$Host))
-    print(paste0("Some mammals not in our data:", paste(setdiff(Mammals, FullPolygons$Host), colllapse = ", ")))
+
+  if (any(!Mammals %in% FullPolygons$Host)){
+
+    print(paste0("Warning: some mammals not in our data: ",
+                 paste(setdiff(Mammals, FullPolygons$Host), collapse = ", ")))
+  } if(all(!Mammals %in% FullPolygons$Host)) stop("No mammals in our data!")
 
   RangePolygons <- FullPolygons %>% filter(Host %in% Mammals)
   VirusName <- str_replace_all(Virus, "_", " ")
