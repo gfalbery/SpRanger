@@ -15,7 +15,9 @@ NetworkPredict <- function(HostList, Network){
 
     Estimates <- FocalNet[pHosts, pHosts2]
 
-    if(is.null(dim(Estimates))) Estimates <- rbind(Estimates, Estimates)
+    if(is.null(dim(Estimates))){
+      Estimates <- rbind(Estimates, Estimates)
+    }
 
     ValidEst <- tibble(Sp = names(sort(colSums(Estimates), decreasing = T)),
                        Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates))
