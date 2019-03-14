@@ -137,7 +137,9 @@ PredPlot <- function(Virus = NULL,
       dplyr::rename(Order = hOrder,
                     Family = MSW05_Family) %>%
       filter(Sp%in%unlist(SpList)) %>%
-      dplyr::rename(Species = Sp)
+      left_join(ValidDF) %>%
+      dplyr::rename(Species = Sp) %>%
+      slice(order(Rank))
 
     ReturnList[["Summarise"]] <- SummariseDF
 

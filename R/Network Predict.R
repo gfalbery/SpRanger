@@ -3,10 +3,9 @@
 
 NetworkPredict <- function(HostList, Network){
 
-  HostList
   pHosts <- intersect(HostList, rownames(Network))
 
-  if(length(pHosts)>1){
+  if(length(pHosts)>0){
 
     FocalNet <- Network[pHosts,]
 
