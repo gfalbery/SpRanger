@@ -7,13 +7,11 @@ NetworkPredict <- function(HostList, Network){
 
   if(length(pHosts)>0){
 
-    FocalNet <- Network[pHosts,]
-
     ValidEst <- list()
 
-    pHosts2 <- setdiff(colnames(FocalNet), pHosts)
+    pHosts2 <- setdiff(colnames(Network), pHosts)
 
-    Estimates <- FocalNet[pHosts, pHosts2]
+    Estimates <- Network[pHosts, pHosts2]
 
     if(is.null(dim(Estimates))){
       Estimates <- rbind(Estimates, Estimates)
