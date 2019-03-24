@@ -3,6 +3,8 @@
 
 NetworkPredict <- function(HostList, Network){
 
+  require(Matrix)
+
   pHosts <- intersect(HostList, rownames(Network))
 
   if(length(pHosts)>0){
@@ -11,7 +13,7 @@ NetworkPredict <- function(HostList, Network){
 
     pHosts2 <- setdiff(colnames(Network), pHosts)
 
-    Estimates <- Network[pHosts, pHosts2]
+    Estimates <- Network[pHosts, pHosts2] %>% as.matrix
 
     if(is.null(dim(Estimates))){
       Estimates <- rbind(Estimates, Estimates)
