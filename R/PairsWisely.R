@@ -22,7 +22,7 @@ PairsWisely <- function(Rasterstack, Species = "All"){
 
   if (any(base::colSums(Valuedf) == 0)) {
     print("Removing some species with no ranging data :(")
-    Valuedf <- Valuedf[, -which(colSums(Valuedf) == 0)]
+    Valuedf <- Valuedf[, -which(base::colSums(Valuedf) == 0)]
   }
 
   RangeOverlap <- matrix(NA, nrow = ncol(Valuedf), ncol = ncol(Valuedf))
