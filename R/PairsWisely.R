@@ -14,12 +14,13 @@ PairsWisely <- function(Rasterstack, Species = "All"){
 
   print(paste0("Data frame size = ", dim(Valuedf)))
 
-  if (Species != "All")
+  if (Species != "All"){
     Valuedf <- Valuedf[, Species]
+  }
 
   print(paste0("Data frame size = ", dim(Valuedf)))
 
-  if (any(colSums(Valuedf) == 0)) {
+  if (any(base::colSums(Valuedf) == 0)) {
     print("Removing some species with no ranging data :(")
     Valuedf <- Valuedf[, -which(colSums(Valuedf) == 0)]
   }
