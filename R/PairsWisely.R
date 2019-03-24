@@ -8,7 +8,7 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   library(Matrix)
   t1 <- Sys.time()
   print("Getting the grid values")
-  Valuedf <- data.frame(getValues(Rasterstack)) %>% as.matrix
+  Valuedf <- data.frame(raster::getValues(Rasterstack)) %>% as.matrix
   Valuedf[is.na(Valuedf)] <- 0
   Valuedf <- Valuedf %>% as("dgCMatrix")
 
@@ -37,6 +37,7 @@ PairsWisely <- function(Rasterstack, Species = "All"){
     }
     else RangeOverlap[x, x:ncol(Valuedf)] <- SubRangedf
   }
+
   x = ncol(Valuedf)
   print(colnames(Valuedf)[x])
   TrainGrids <- Valuedf[, x]
@@ -53,5 +54,9 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   diag(RangeAdj) <- NA
   RangeAdj[lower.tri(RangeAdj)] <- t(RangeAdj)[!is.na(t(RangeAdj))]
   diag(RangeAdj) <- 1
-  return(RangeAdj)
+
+  RangeAdj
+
 }
+
+
