@@ -20,9 +20,9 @@ PairsWisely <- function(Rasterstack, Species = "All"){
 
   print(paste0("Data frame size = ", dim(Valuedf)))
 
-  if (any(base::colSums(Valuedf) == 0)) {
+  if (any(Matrix::colSums(Valuedf) == 0)) {
     print("Removing some species with no ranging data :(")
-    Valuedf <- Valuedf[, -which(base::colSums(Valuedf) == 0)]
+    Valuedf <- Valuedf[, -which(Matrix::colSums(Valuedf) == 0)]
   }
 
   RangeOverlap <- matrix(NA, nrow = ncol(Valuedf), ncol = ncol(Valuedf))
