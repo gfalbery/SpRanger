@@ -76,73 +76,71 @@ PredPlot <- function(Virus = NULL,
   if("Observed"%in%FocalDisplay) SpList$Observed <- HostList
   if("Predicted"%in%FocalDisplay) SpList$Predicted <- setdiff(ValidDF$Sp, HostList)
 
-}
+  VirusName <- str_replace_all(Virus, "_", " ")
 
-VirusName <- str_replace_all(Virus, "_", " ")
+  if(Facet&length(FocalDisplay)==2){
 
-if(Facet&length(FocalDisplay)==2){
+    Plots <- list()
 
-  Plots <- list()
+    for(x in FocalDisplay){
 
-  for(x in FocalDisplay){
+      Title = x
 
-    Title = x
+      PlotSp <- SpList[[x]]
 
-    PlotSp <- SpList[[x]]
+      Plots[[x]] <-
 
-    Plots[[x]] <-
+        RangePlot(Mammals = PlotSp, Map = Map, Tree = Tree) +
+        ggtitle(as.character(paste(Title, "Hosts"))) +
+        theme(legend.position = Legend)
 
-      RangePlot(Mammals = PlotSp, Map = Map, Tree = Tree) +
-      ggtitle(as.character(paste(Title, "Hosts"))) +
+    }
+
+    MapPlot <- Plots %>% arrange_ggplot2(nrow = 2)
+
+  } else {
+
+    MapPlot <- RangePlot(Mammals = unlist(SpList),
+                         Map = Map,
+                         Tree = Tree) +
       theme(legend.position = Legend)
 
   }
 
-  MapPlot <- Plots %>% arrange_ggplot2(nrow = 2)
+  ReturnList <- list()
 
-} else {
+  ReturnList[["MapPlot"]] <- MapPlot
 
-  MapPlot <- RangePlot(Mammals = unlist(SpList),
-                       Map = Map,
-                       Tree = Tree) +
-    theme(legend.position = Legend)
+  if(Validate){
 
-}
+    FullDF$Focal <- FullDF$Focal %>% factor(levels = c("Predicted", "Observed"))
 
-ReturnList <- list()
+    ValidPlot <- ggplot(FullDF, aes(Focal, Count, colour = Focal, alpha = Focal)) +
+      ggforce::geom_sina() +
+      scale_alpha_manual(values = c(0.3, 1)) +
+      geom_text(data = FullDF[1,], inherit.aes = F, aes(x = 1.5, y = max(FullDF$Count)*1.1,
+                                                        label = paste("Mean Focal Rank =",
+                                                                      mean(FullDF[FullDF$Focal=="Observed","Rank"])))) +
+      ggtitle("Model Success Rate")
 
-ReturnList[["MapPlot"]] <- MapPlot
+    ReturnList[["ValidPlot"]] <- ValidPlot
+  }
 
-if(Validate){
+  if(Summarise){
 
-  FullDF$Focal <- FullDF$Focal %>% factor(levels = c("Predicted", "Observed"))
+    SummariseDF <- Panth1 %>%
+      dplyr::select(Sp, hOrder, MSW05_Family) %>%
+      dplyr::rename(Order = hOrder,
+                    Family = MSW05_Family) %>%
+      filter(Sp%in%unlist(SpList)) %>%
+      left_join(ValidDF) %>%
+      dplyr::rename(Species = Sp) %>%
+      slice(order(Rank))
 
-  ValidPlot <- ggplot(FullDF, aes(Focal, Count, colour = Focal, alpha = Focal)) +
-    ggforce::geom_sina() +
-    scale_alpha_manual(values = c(0.3, 1)) +
-    geom_text(data = FullDF[1,], inherit.aes = F, aes(x = 1.5, y = max(FullDF$Count)*1.1,
-                                                      label = paste("Mean Focal Rank =",
-                                                                    mean(FullDF[FullDF$Focal=="Observed","Rank"])))) +
-    ggtitle("Model Success Rate")
+    ReturnList[["Summarise"]] <- SummariseDF
 
-  ReturnList[["ValidPlot"]] <- ValidPlot
-}
+  }
 
-if(Summarise){
-
-  SummariseDF <- Panth1 %>%
-    dplyr::select(Sp, hOrder, MSW05_Family) %>%
-    dplyr::rename(Order = hOrder,
-                  Family = MSW05_Family) %>%
-    filter(Sp%in%unlist(SpList)) %>%
-    left_join(ValidDF) %>%
-    dplyr::rename(Species = Sp) %>%
-    slice(order(Rank))
-
-  ReturnList[["Summarise"]] <- SummariseDF
-
-}
-
-return(ReturnList)
+  return(ReturnList)
 
 }
