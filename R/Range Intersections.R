@@ -15,7 +15,7 @@ IntersectGet <- function(Rasterstack, Names = "All", Predicate = F){
 
         if(a<b){
 
-          raster::intersect(MammalRanges[[Names[a]]], MammalRanges[[Names[b]]])
+          raster::intersect(Rasterstack[[Names[a]]], Rasterstack[[Names[b]]])
 
         }
 
@@ -38,7 +38,7 @@ IntersectGet <- function(Rasterstack, Names = "All", Predicate = F){
 
           if(Predicate[Names[a],Names[b]]>0){
 
-            raster::intersect(MammalRanges[[Names[a]]], MammalRanges[[Names[b]]])
+            raster::intersect(Rasterstack[[Names[a]]], Rasterstack[[Names[b]]])
 
           }
         }
