@@ -1,13 +1,20 @@
 
 IntersectGet <- function(Rasterstack, Names = "All", Predicate = F){
 
-  if(Names == "All") Names = names(Rasterstack)
+  require(Matrix)
+
+  if(all(Names == "All")) Names = names(Rasterstack) else{
+    if(length(setdiff(Names, names(Rasterstack)))>0){
+      Names = intersect(Names, names(Rasterstack))
+      print("Warning: some names not in the rasterstack!")
+    }
+  }
 
   N = length(Names)
 
-  if(!Predicate){
+  if(length(Predicate)==0){
 
-    lapply(1:N, function(a){
+    RasterList <- lapply(1:N, function(a){
 
       print(Names[a])
 
@@ -15,7 +22,7 @@ IntersectGet <- function(Rasterstack, Names = "All", Predicate = F){
 
         if(a<b){
 
-          raster::intersect(MammalRanges[[Names[a]]], MammalRanges[[Names[b]]])
+          raster::intersect(Rasterstack[[Names[a]]], Rasterstack[[Names[b]]])
 
         }
 
@@ -28,21 +35,28 @@ IntersectGet <- function(Rasterstack, Names = "All", Predicate = F){
       print("Warning: Some species not in predicate matrix!!")
     }
 
-    lapply(1:N, function(a){
+    if(length(setdiff(rownames(Predicate), Names)>0)){
+      Names <- intersect(Names, colnames(Predicate))
+      print("Warning: Some predicate species not in rasterstack!!")
+    }
 
-      print(Names[a])
+    Predicate <- Predicate[Names, Names]
+    Predicate[upper.tri(Predicate)] <- NA
 
-      lapply(1:N, function(b){
+    Predicate2 <- Predicate %>% reshape2::melt() %>% rename(Sp = Var1, Sp2 = Var2) %>%
+      mutate(Sp = as.character(Sp), Sp2 = as.character(Sp2)) %>%
+      na.omit() %>% filter(!as.numeric(value)==0)
 
-        if(a<b){
+    RasterList <- lapply(1:nrow(Predicate2), function(a){
 
-          if(Predicate[Names[a],Names[b]]>0){
+      print(paste0(a, ": ", paste(Predicate2[a,c("Sp","Sp2")], collapse = ".")))
 
-            raster::intersect(MammalRanges[[Names[a]]], MammalRanges[[Names[b]]])
+      raster::intersect(Rasterstack[[Predicate2[a,"Sp"]]], Rasterstack[[Predicate2[a,"Sp2"]]])
 
-          }
-        }
-      })
     })
+
+    names(RasterList) <- paste(Predicate2$Sp, Predicate2$Sp2, sep = ".")
+
   }
+
 }
