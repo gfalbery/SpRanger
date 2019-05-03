@@ -1,30 +1,44 @@
-
-# Range overlap calculation ####
-
 PairsWisely <- function(Rasterstack, Species = "All"){
-
+  
   library(raster)
   library(tidyverse)
   library(Matrix)
-  t1 <- Sys.time()
-  print("Getting the grid values")
-  Valuedf <- data.frame(raster::getValues(Rasterstack)) %>% as.matrix
+  
+  Rasterstack = RasterListb
+  
+  if(class(Rasterstack)=="RasterBrick"){
+    
+    t1 <- Sys.time()
+    print("Getting the grid values")
+    Valuedf <- data.frame(raster::getValues(Rasterstack)) %>% as.matrix
+    
+  } else{
+    
+    Valuedf <- lapply(1:length(Rasterstack), function(a){
+      print(a)
+      
+      getValues(Rasterstack[[a]])
+      
+    }) %>% bind_cols %>% as.data.frame()
+    
+  }
+  
   Valuedf[is.na(Valuedf)] <- 0
-  Valuedf <- Valuedf %>% as("dgCMatrix")
-
+  Valuedf <- Valuedf %>% as.matrix() %>% as("dgCMatrix")
+  
   print(paste0("Data frame size = ", dim(Valuedf)))
-
+  
   if (Species != "All"){
     Valuedf <- Valuedf[, Species]
   }
-
+  
   print(paste0("Data frame size = ", dim(Valuedf)))
-
+  
   if (any(Matrix::colSums(Valuedf) == 0)) {
     print("Removing some species with no ranging data :(")
     Valuedf <- Valuedf[, -which(Matrix::colSums(Valuedf) == 0)]
   }
-
+  
   RangeOverlap <- matrix(NA, nrow = ncol(Valuedf), ncol = ncol(Valuedf))
   dimnames(RangeOverlap) <- list(colnames(Valuedf), colnames(Valuedf))
   print("Calculating Overlap")
@@ -38,7 +52,7 @@ PairsWisely <- function(Rasterstack, Species = "All"){
     }
     else RangeOverlap[x, x:ncol(Valuedf)] <- SubRangedf
   }
-
+  
   x = ncol(Valuedf)
   print(colnames(Valuedf)[x])
   TrainGrids <- Valuedf[, x]
@@ -55,9 +69,6 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   diag(RangeAdj) <- NA
   RangeAdj[lower.tri(RangeAdj)] <- t(RangeAdj)[!is.na(t(RangeAdj))]
   diag(RangeAdj) <- 1
-
+  
   RangeAdj
-
 }
-
-
