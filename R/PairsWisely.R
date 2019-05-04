@@ -14,8 +14,7 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   }else{
     
     Valuedf <- lapply(1:length(Rasterstack), function(a){
-      print(a)
-      
+
       getValues(Rasterstack[[a]])
       
     }) %>% bind_cols %>% as.data.frame()
