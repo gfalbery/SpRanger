@@ -3,9 +3,7 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   library(raster)
   library(tidyverse)
   library(Matrix)
-  
-  Rasterstack = RasterListb
-  
+   
   print("Making data frame!")
   
   if(class(Rasterstack)=="RasterBrick"){
