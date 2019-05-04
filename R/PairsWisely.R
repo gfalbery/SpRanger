@@ -3,24 +3,26 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   library(raster)
   library(tidyverse)
   library(Matrix)
-   
-  print("Making data frame!")
+  
+  t1 <- Sys.time()
+  print("Getting the grid values")
   
   if(class(Rasterstack)=="RasterBrick"){
-    
-    t1 <- Sys.time()
-    print("Getting the grid values")
+
     Valuedf <- data.frame(raster::getValues(Rasterstack)) %>% as.matrix
     
-  } else{
+  }else{
     
     Valuedf <- lapply(1:length(Rasterstack), function(a){
+      print(a)
       
       getValues(Rasterstack[[a]])
       
     }) %>% bind_cols %>% as.data.frame()
     
   }
+  
+  colnames(Valuedf) <- names(Rasterstack)
   
   Valuedf[is.na(Valuedf)] <- 0
   Valuedf <- Valuedf %>% as.matrix() %>% as("dgCMatrix")
@@ -31,12 +33,12 @@ PairsWisely <- function(Rasterstack, Species = "All"){
     Valuedf <- Valuedf[, Species]
   }
   
-  print(paste0("Data frame size = ", dim(Valuedf)))
-  
   if (any(Matrix::colSums(Valuedf) == 0)) {
     print("Removing some species with no ranging data :(")
     Valuedf <- Valuedf[, -which(Matrix::colSums(Valuedf) == 0)]
   }
+  
+  print(paste0("Data frame size = ", dim(Valuedf)))
   
   RangeOverlap <- matrix(NA, nrow = ncol(Valuedf), ncol = ncol(Valuedf))
   dimnames(RangeOverlap) <- list(colnames(Valuedf), colnames(Valuedf))
