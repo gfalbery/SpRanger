@@ -6,6 +6,8 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   
   Rasterstack = RasterListb
   
+  print("Making data frame!")
+  
   if(class(Rasterstack)=="RasterBrick"){
     
     t1 <- Sys.time()
@@ -15,7 +17,6 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   } else{
     
     Valuedf <- lapply(1:length(Rasterstack), function(a){
-      print(a)
       
       getValues(Rasterstack[[a]])
       
