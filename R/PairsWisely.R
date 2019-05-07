@@ -1,4 +1,4 @@
-PairsWisely <- function(Rasterstack, Species = "All"){
+PairsWisely <- function(Rasterstack, Species = "All", Area = F){
   
   library(raster)
   library(tidyverse)
@@ -8,18 +8,20 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   print("Getting the grid values")
   
   if(class(Rasterstack)=="RasterBrick"){
-
+    
     Valuedf <- data.frame(raster::getValues(Rasterstack)) %>% as.matrix
     
   }else{
     
     Valuedf <- lapply(1:length(Rasterstack), function(a){
-
+      
       getValues(Rasterstack[[a]])
       
     }) %>% bind_cols %>% as.data.frame()
     
   }
+  
+  if(Area){AreaFun <- function(a){sum(a, na.rm = T)} } else {AreaFun <- function(a){length(which(a>0))}}
   
   colnames(Valuedf) <- names(Rasterstack)
   
@@ -45,10 +47,9 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   for (x in 1:(ncol(Valuedf) - 1)) {
     print(colnames(Valuedf)[x])
     TrainGrids <- Valuedf[, x]
-    SubRangedf <- Valuedf[which(TrainGrids == 1), x:ncol(Valuedf)]
+    SubRangedf <- Valuedf[which(TrainGrids > 0), x:ncol(Valuedf)]
     if (!is.null(dim(SubRangedf))) {
-      RangeOverlap[x, x:ncol(Valuedf)] <- apply(SubRangedf,
-                                                2, function(a) length(which(a == 1)))
+      RangeOverlap[x, x:ncol(Valuedf)] <- apply(SubRangedf, 2, AreaFun)
     }
     else RangeOverlap[x, x:ncol(Valuedf)] <- SubRangedf
   }
@@ -57,8 +58,7 @@ PairsWisely <- function(Rasterstack, Species = "All"){
   print(colnames(Valuedf)[x])
   TrainGrids <- Valuedf[, x]
   SubRangedf <- Valuedf[which(TrainGrids == 1), x:ncol(Valuedf)]
-  RangeOverlap[x, x:ncol(Valuedf)] <- length(which(SubRangedf ==
-                                                     1))
+  RangeOverlap[x, x:ncol(Valuedf)] <- AreaFun(SubRangedf)
   FullRangeA = matrix(rep(diag(RangeOverlap), nrow(RangeOverlap)),
                       nrow(RangeOverlap))
   FullRangeB = matrix(rep(diag(RangeOverlap), each = nrow(RangeOverlap)),
