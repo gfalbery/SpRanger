@@ -1,4 +1,4 @@
-function(Rasterstack, Species = "All", Area = F){
+PairsWisely <- function(Rasterstack, Species = "All", Area = F){
   
   library(raster)
   library(tidyverse)
