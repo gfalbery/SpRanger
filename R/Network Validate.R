@@ -1,5 +1,5 @@
 
-NetworkValidate <- function(HostList, Network){
+NetworkValidate <- function(HostList, Network, Fun = colSums){
 
   require(Matrix)
 
@@ -20,8 +20,10 @@ NetworkValidate <- function(HostList, Network){
 
       }
 
-      Ests <- data.frame(Sp = names(sort(colSums(Estimates),
-                                         decreasing = T)), Count = sort(colSums(Estimates),
+      ValidFunction <- Fun
+
+      Ests <- data.frame(Sp = names(sort(ValidFunction(Estimates),
+                                         decreasing = T)), Count = sort(ValidFunction(Estimates),
                                                                         decreasing = T)/nrow(Estimates)) %>% mutate(Focal = ifelse(Sp ==
                                                                                                                                      b, "Observed", "Predicted"), Iteration = b)
       ValidEst[[b]] <- Ests
