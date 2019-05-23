@@ -1,7 +1,7 @@
 
 # Network Prediction only ####
 
-NetworkPredict <- function(HostList, Network){
+NetworkPredict <- function(HostList, Network, Fun = colSums){
 
   require(Matrix)
 
@@ -19,8 +19,10 @@ NetworkPredict <- function(HostList, Network){
       Estimates <- rbind(Estimates, Estimates)
     }
 
-    ValidEst <- tibble(Sp = names(sort(colSums(Estimates), decreasing = T)),
-                       Count = sort(colSums(Estimates), decreasing = T)/nrow(Estimates))
+    PredictFunction <- Fun
+
+    ValidEst <- tibble(Sp = names(sort(PredictFunction(Estimates), decreasing = T)),
+                       Count = sort(PredictFunction(Estimates), decreasing = T)/nrow(Estimates))
 
     ValidEst$Rank <- nrow(ValidEst) - rank(ValidEst$Count, ties.method = "average") + 1
 
