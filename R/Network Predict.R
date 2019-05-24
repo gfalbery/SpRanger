@@ -13,10 +13,10 @@ NetworkPredict <- function(HostList, Network, Fun = colSums){
 
     pHosts2 <- setdiff(colnames(Network), pHosts)
 
-    Estimates <- Network[pHosts, pHosts2] %>% as.matrix
+    Estimates <- Network[pHosts, pHosts2] #%>% as.matrix
 
     if(is.null(dim(Estimates))){
-      Estimates <- rbind(Estimates, Estimates)
+      Estimates <- t(data.frame(Estimates))
     }
 
     PredictFunction <- Fun

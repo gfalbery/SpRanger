@@ -12,12 +12,10 @@ NetworkValidate <- function(HostList, Network, Fun = colSums){
       # print(b)
       pHosts4 <- setdiff(pHosts2, b)
       pHosts3 <- setdiff(colnames(FocalNet), pHosts4)
-      Estimates <- FocalNet[pHosts4, pHosts3] %>% as.matrix
+      Estimates <- FocalNet[pHosts4, pHosts3] # %>% as.matrix
 
-      if (is.null(dim(Estimates))){
-
-        Estimates <- rbind(Estimates, Estimates)
-
+      if(is.null(dim(Estimates))){
+        Estimates <- t(data.frame(Estimates))
       }
 
       ValidFunction <- Fun
