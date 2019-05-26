@@ -9,9 +9,12 @@ PredPlot <- function(Virus = NULL,
                      Map = TRUE,
                      Tree = TRUE,
                      Summarise = TRUE,
-                     Legend = "right"){
+                     Legend = "right",
+                     Theme = theme_void()){
 
   require(dplyr); require(stringr); library(tidyverse); require(ggtree); require(cowplot)
+
+  Theme = theme_void()
 
   if(!is.null(Virus)&!is.null(HostList)) stop("Only specify one of Virus or Host please :)")
 
@@ -92,6 +95,7 @@ PredPlot <- function(Virus = NULL,
 
         RangePlot(Mammals = PlotSp, Map = Map, Tree = Tree) +
         ggtitle(as.character(paste(Title, "Hosts"))) +
+        Theme +
         theme(legend.position = Legend)
 
     }
@@ -103,6 +107,7 @@ PredPlot <- function(Virus = NULL,
     MapPlot <- RangePlot(Mammals = unlist(SpList),
                          Map = Map,
                          Tree = Tree) +
+      Theme +
       theme(legend.position = Legend)
 
   }
@@ -129,9 +134,9 @@ PredPlot <- function(Virus = NULL,
   if(Summarise){
 
     SummariseDF <- Panth1 %>%
-      dplyr::select(Sp, hOrder, MSW05_Family) %>%
+      dplyr::select(Sp, hOrder, hFamily) %>%
       dplyr::rename(Order = hOrder,
-                    Family = MSW05_Family) %>%
+                    Family = hFamily) %>%
       filter(Sp%in%unlist(SpList)) %>%
       left_join(ValidDF) %>%
       dplyr::rename(Species = Sp) %>%
