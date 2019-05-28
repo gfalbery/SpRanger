@@ -96,11 +96,13 @@ PredPlot <- function(Virus = NULL,
         RangePlot(Mammals = PlotSp, Map = Map, Tree = Tree) +
         ggtitle(as.character(paste(Title, "Hosts"))) +
         Theme +
-        theme(legend.position = Legend)
+        theme(legend.position = Legend) +
+        theme(plot.title = element_text(hjust=0.5))
 
     }
 
-    MapPlot <- Plots %>% arrange_ggplot2(nrow = 2)
+    # MapPlot <- Plots %>% arrange_ggplot2(nrow = 2)
+    MapPlot <- Plots %>% plot_grid(plotlist = ., nrow = 2, align = "v")
 
   } else {
 
