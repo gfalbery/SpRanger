@@ -97,12 +97,14 @@ PredPlot <- function(Virus = NULL,
         ggtitle(as.character(paste(Title, "Hosts"))) +
         Theme +
         theme(legend.position = Legend) +
-        theme(plot.title = element_text(hjust=0.5))
+        theme(plot.title = element_text(hjust=0.5),
+              legend.text = element_text(size = 5))
 
     }
 
     # MapPlot <- Plots %>% arrange_ggplot2(nrow = 2)
-    MapPlot <- Plots %>% plot_grid(plotlist = ., nrow = 2, align = "v")
+    MapPlot <-
+      Plots %>% plot_grid(plotlist = ., nrow = 2, align = "v")
 
   } else {
 
