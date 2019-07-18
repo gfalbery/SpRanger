@@ -1,62 +1,62 @@
 
-IntersectGet <- function(Rasterstack, Names = "All", Predicate = F){
+IntersectGet <-
+  function(Rasterstack, PairList, Names = "All", Predicate = F){
 
-  require(Matrix)
+    library(raster); library(tidyverse); library(Matrix)
 
-  if(all(Names == "All")) Names = names(Rasterstack) else{
-    if(length(setdiff(Names, names(Rasterstack)))>0){
-      Names = intersect(Names, names(Rasterstack))
-      print("Warning: some names not in the rasterstack!")
+    t1 <- Sys.time()
+    print("Getting the grid values")
+
+    if(class(Rasterstack)=="RasterBrick"){
+
+      Valuedf <- data.frame(raster::getValues(Rasterstack)) %>% as.matrix
+
+    }else{
+
+      Valuedf <- lapply(1:length(Rasterstack), function(a){
+
+        getValues(Rasterstack[[a]])
+
+      }) %>% bind_cols %>% as.data.frame()
+
     }
+
+    if(Area){AreaFun <- function(a){sum(a, na.rm = T)} } else {AreaFun <- function(a){length(which(a>0))}}
+
+    colnames(Valuedf) <- names(Rasterstack)
+
+    Valuedf[is.na(Valuedf)] <- 0
+    Valuedf <- Valuedf %>% as.matrix() %>% as("dgCMatrix")
+
+    print(paste0("Data frame size = ", dim(Valuedf)))
+
+    if (Species != "All"){
+      Valuedf <- Valuedf[, Species]
+    }
+
+    if (any(Matrix::colSums(Valuedf) == 0)) {
+      print("Removing some species with no ranging data :(")
+      Valuedf <- Valuedf[, -which(Matrix::colSums(Valuedf) == 0)]
+    }
+
+    print(paste0("Data frame size = ", dim(Valuedf)))
+
+    lapply(1:nrow(PairList), function(b){
+
+      Sp1 <- PairList[1,"Sp.1"]
+      Sp2 <- PairList[1,"Sp.2"]
+
+      Vector1 <- Valuedf[,Sp1]
+      Vector1[Valuedf[,Sp2]==0] <- 0
+
+      Vector1 %>% return
+
+    }) -> ValuesVectors#
+
+    names(ValuesVectors) <- paste(PairList[,1],
+                                  PairList[,2],
+                                  sep = ".")
+
+    return(ValuesVectors)
+
   }
-
-  N = length(Names)
-
-  if(length(Predicate)==0){
-
-    RasterList <- lapply(1:N, function(a){
-
-      print(Names[a])
-
-      lapply(1:N, function(b){
-
-        if(a<b){
-
-          raster::intersect(Rasterstack[[Names[a]]], Rasterstack[[Names[b]]])
-
-        }
-
-      })
-    })
-  } else {
-
-    if(length(setdiff(Names, rownames(Predicate))>0)){
-      Names <- intersect(Names, colnames(Predicate))
-      print("Warning: Some species not in predicate matrix!!")
-    }
-
-    if(length(setdiff(rownames(Predicate), Names)>0)){
-      Names <- intersect(Names, colnames(Predicate))
-      print("Warning: Some predicate species not in rasterstack!!")
-    }
-
-    Predicate <- Predicate[Names, Names]
-    Predicate[upper.tri(Predicate)] <- NA
-
-    Predicate2 <- Predicate %>% reshape2::melt() %>% rename(Sp = Var1, Sp2 = Var2) %>%
-      mutate(Sp = as.character(Sp), Sp2 = as.character(Sp2)) %>%
-      na.omit() %>% filter(!as.numeric(value)==0)
-
-    RasterList <- lapply(1:nrow(Predicate2), function(a){
-
-      print(paste0(a, ": ", paste(Predicate2[a,c("Sp","Sp2")], collapse = ".")))
-
-      raster::intersect(Rasterstack[[Predicate2[a,"Sp"]]], Rasterstack[[Predicate2[a,"Sp2"]]])
-
-    })
-
-    names(RasterList) <- paste(Predicate2$Sp, Predicate2$Sp2, sep = ".")
-
-  }
-
-}
