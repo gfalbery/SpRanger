@@ -1,5 +1,5 @@
 
-NetworkValidate <- function(HostList, Network, Fun = colSums){
+NetworkValidate <- function(HostList, Network, Fun = colSums, Silent = F){
 
   require(Matrix)
 
@@ -35,7 +35,7 @@ NetworkValidate <- function(HostList, Network, Fun = colSums){
   }
   else {
     ValidEst <- NA
-    print("Hosts Not Found!")
+    if(!Silent) print("Hosts Not Found!")
   }
 
   return(ValidEst)
