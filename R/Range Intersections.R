@@ -1,6 +1,6 @@
 
 IntersectGet <-
-  function(Rasterstack, PairList, Names = "All", Predicate = F){
+  function(Rasterstack, PairList, Names = "All"){
 
     library(raster); library(tidyverse); library(Matrix)
 
@@ -20,8 +20,6 @@ IntersectGet <-
       }) %>% bind_cols %>% as.data.frame()
 
     }
-
-    if(Area){AreaFun <- function(a){sum(a, na.rm = T)} } else {AreaFun <- function(a){length(which(a>0))}}
 
     colnames(Valuedf) <- names(Rasterstack)
 
