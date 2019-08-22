@@ -37,19 +37,29 @@ IntersectGet <-
       Valuedf <- Valuedf[, -which(Matrix::colSums(Valuedf) == 0)]
     }
 
+    if(length(intersect(c(PairList[,1], PairList[,2]), colnames(Valuedf)))<ncol(Valuedf)){
+      print("Removing some species in the PairList but with no rasters :(")
+
+      Species <- intersect(c(PairList[,1], PairList[,2]), colnames(Valuedf))
+
+      Valuedf <- Valuedf[,Species]
+      PairList <- PairList[PairList[,1]%in%Species&PairList[,2]%in%Species,]
+
+    }
+
     print(paste0("Data frame size = ", dim(Valuedf)))
 
     lapply(1:nrow(PairList), function(b){
 
-      Sp1 <- PairList[1,"Sp.1"]
-      Sp2 <- PairList[1,"Sp.2"]
+      Sp1 <- PairList[b,1]
+      Sp2 <- PairList[b,2]
 
       Vector1 <- Valuedf[,Sp1]
       Vector1[Valuedf[,Sp2]==0] <- 0
 
       Vector1 %>% return
 
-    }) -> ValuesVectors#
+    }) -> ValuesVectors
 
     names(ValuesVectors) <- paste(PairList[,1],
                                   PairList[,2],
