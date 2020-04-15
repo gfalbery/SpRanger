@@ -4,9 +4,7 @@
 
 # SpRanger
 
-## Very in development, mostly useless at this point
-
-Tools for deriving and manipulating IUCN species ranges and creating overlap matrices.
+## Tools for deriving and manipulating IUCN species ranges and creating overlap matrices.
 
 Get the ranges from here: https://www.iucnredlist.org/resources/spatial-data-download
 
