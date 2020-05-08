@@ -1,7 +1,7 @@
 
 # Network Prediction only ####
 
-NetworkPredict <- function(HostList, Network, Fun = colSums){
+NetworkPredict <- function(HostList, Network, Fun = colSums, IncludeObserved = F){
 
   require(Matrix)
 
@@ -11,7 +11,15 @@ NetworkPredict <- function(HostList, Network, Fun = colSums){
 
     ValidEst <- list()
 
-    pHosts2 <- setdiff(colnames(Network), pHosts)
+    if(!IncludeObserved){
+
+      pHosts2 <- setdiff(colnames(Network), pHosts)
+
+    }else{
+
+      pHosts2 <- colnames(Network)
+
+    }
 
     Estimates <- Network[pHosts, pHosts2] #%>% as.matrix
 
@@ -31,6 +39,12 @@ NetworkPredict <- function(HostList, Network, Fun = colSums){
     ValidEst <- NA
 
     print("Hosts Not Found!")
+
+  }
+
+  if(IncludeObserved){
+
+    ValidEst$Observed <- as.numeric(ValidEst$Sp %in% HostList)
 
   }
 
