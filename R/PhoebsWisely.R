@@ -68,11 +68,11 @@ PhoebsWisely <- function(Rasterstack, Species = "All", Area = F){
 
     if (!is.null(dim(SubRangedf))) {
 
-      RangeOverlap[x,] <- apply(SubRangedf, 2, AreaFun)
+      RangeOverlap[x,] <- apply(SubRangedf, 2, AreaFun)/nrow(SubRangedf)
 
     }
 
-    else RangeOverlap[x,] <- sapply(SubRangedf, AreaFun)
+    else RangeOverlap[x,] <- sapply(SubRangedf, AreaFun)/nrow(SubRangedf)
 
   }
 
@@ -80,12 +80,17 @@ PhoebsWisely <- function(Rasterstack, Species = "All", Area = F){
   print(colnames(Valuedf)[x])
   TrainGrids <- Valuedf[, x]
   SubRangedf <- Valuedf[which(TrainGrids>0), ]
-  RangeOverlap[x,] <- AreaFun(SubRangedf)
 
-  FullRangeA = matrix(rep(diag(RangeOverlap), nrow(RangeOverlap)),
+  # RangeOverlap[x,] <- AreaFun(SubRangedf)/nrow(SubRangedf)
+
+  RangeOverlap[x,] <- sapply(SubRangedf, AreaFun)/nrow(SubRangedf)
+
+  FullRangeA = matrix(rep(diag(RangeOverlap),
+                          nrow(RangeOverlap)),
                       nrow(RangeOverlap))
 
-  FullRangeB = matrix(rep(diag(RangeOverlap), each = nrow(RangeOverlap)),
+  FullRangeB = matrix(rep(diag(RangeOverlap),
+                          each = nrow(RangeOverlap)),
                       nrow(RangeOverlap))
 
   RangeAdj <- RangeOverlap/(FullRangeA + FullRangeB - RangeOverlap)
